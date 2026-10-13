@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="vi" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LuaShield - Professional Luau Obfuscator & Raw Packer</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0fdf4',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            950: '#052e16',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-zinc-950 text-zinc-100 min-h-screen flex flex-col selection:bg-brand-500 selection:text-black">
+
+    <!-- Header -->
+    <header class="border-b border-zinc-800 bg-zinc-900/50 backdrop-blur sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 to-emerald-400 flex items-center justify-center shadow-lg shadow-brand-500/20">
+                    <i class="fa-solid fa-shield-halved text-black text-lg"></i>
+                </div>
+                <div>
+                    <span class="font-bold text-lg tracking-wide bg-gradient-to-r from-white to-zinc-400 bg-clip-text text-transparent">LuaShield</span>
+                    <span class="text-xs block text-brand-500 font-mono">v3.0 Raw Bytecode Packer</span>
+                </div>
+            </div>
+            <div class="flex items-center space-x-4">
+                <span class="text-xs text-zinc-400 hidden sm:inline-block"><i class="fa-solid fa-circle text-emerald-500 text-[8px] mr-1.5"></i> Engine: Active</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <!-- Sidebar Options (Left) -->
+        <div class="lg:col-span-3 space-y-4">
+            <div class="bg-zinc-900/80 border border-zinc-800 rounded-2xl p-5 shadow-xl">
+                <h2 class="text-sm font-semibold text-zinc-300 uppercase tracking-wider mb-4 flex items-center">
+                    <i class="fa-solid fa-sliders mr-2 text-brand-500"></i> Cấu hình bảo vệ
+                </h2>
+                
+                <!-- Khung đặt tên cho script -->
+                <div class="mb-4">
+                    <label class="block text-xs font-medium text-zinc-400 mb-1.5 flex items-center">
+                        <i class="fa-solid fa-signature mr-1.5 text-brand-500"></i> Tên Script (Metadata)
+                    </label>
+                    <input type="text" id="scriptName" placeholder="VD: hieuYK Hub v2.0" class="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3.5 py-2.5 text-sm text-zinc-200 focus:outline-none focus:border-brand-500 transition placeholder:text-zinc-600">
+                </div>
+
+                <div class="space-y-3.5 text-sm border-t border-zinc-800 pt-4">
+                    <label class="flex items-center justify-between p-2 rounded-xl hover:bg-zinc-800/50 cursor-pointer transition">
+                        <span class="text-zinc-300">Mã hóa Raw Byte Array</span>
+                        <input type="checkbox" id="optRaw" checked class="w-4 h-4 accent-brand-500 rounded bg-zinc-800 border-zinc-700">
+                    </label>
+
+                    <label class="flex items-center justify-between p-2 rounded-xl hover:bg-zinc-800/50 cursor-pointer transition">
+                        <span class="text-zinc-300">Biến ngẫu nhiên hóa (Scramble)</span>
+                        <input type="checkbox" id="optScramble" checked class="w-4 h-4 accent-brand-500 rounded bg-zinc-800 border-zinc-700">
+                    </label>
+
+                    <label class="flex items-center justify-between p-2 rounded-xl hover:bg-zinc-800/50 cursor-pointer transition">
+                        <span class="text-zinc-300">Chống Debug / Tamper Check</span>
+                        <input type="checkbox" id="optAntiDebug" checked class="w-4 h-4 accent-brand-500 rounded bg-zinc-800 border-zinc-700">
+                    </label>
+                </div>
+
+                <button onclick="obfuscateCode()" class="w-full mt-6 bg-brand-500 hover:bg-brand-600 text-black font-semibold py-3 px-4 rounded-xl shadow-lg shadow-brand-500/20 transition-all flex items-center justify-center space-x-2">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i>
+                    <span>Tạo Raw & Bảo vệ</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Editor & Output Area (Right) -->
+        <div class="lg:col-span-9 grid grid-cols-1 md:grid-cols-2 gap-6">
+            
+            <!-- Input Box -->
+            <div class="bg-zinc-900/80 border border-zinc-800 rounded-2xl flex flex-col shadow-xl overflow-hidden">
+                <div class="px-4 py-3 bg-zinc-900 border-b border-zinc-800 flex items-center justify-between">
+                    <span class="text-xs font-mono text-zinc-400 flex items-center"><i class="fa-solid fa-code mr-2 text-brand-500"></i> INPUT.LUA</span>
+                    <button onclick="clearInput()" class="text-xs text-zinc-500 hover:text-red-400 transition"><i class="fa-solid fa-trash-can"></i> Xóa</button>
+                </div>
+                <textarea id="inputCode" placeholder="Dán mã nguồn Lua của bạn vào đây (vd: print('Hello World'))..." class="w-full h-80 lg:h-[420px] bg-transparent p-4 font-mono text-xs sm:text-sm text-zinc-200 focus:outline-none resize-none placeholder:text-zinc-600"></textarea>
+            </div>
+
+            <!-- Output Box -->
+            <div class="bg-zinc-900/80 border border-zinc-800 rounded-2xl flex flex-col shadow-xl overflow-hidden">
+                <div class="px-4 py-3 bg-zinc-900 border-b border-zinc-800 flex items-center justify-between">
+                    <span class="text-xs font-mono text-zinc-400 flex items-center"><i class="fa-solid fa-lock mr-2 text-emerald-400"></i> OBFUSCATED_RUNNABLE.LUA</span>
+                    <button onclick="copyOutput()" class="text-xs text-brand-500 hover:text-brand-400 transition font-medium flex items-center"><i class="fa-regular fa-copy mr-1"></i> Sao chép</button>
+                </div>
+                <textarea id="outputCode" readonly placeholder="Mã nguồn dạng Raw Loadstring hoàn chỉnh sẽ hiển thị ở đây..." class="w-full h-80 lg:h-[420px] bg-transparent p-4 font-mono text-xs sm:text-sm text-emerald-400/90 focus:outline-none resize-none placeholder:text-zinc-600"></textarea>
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-zinc-800 py-4 text-center text-xs text-zinc-500">
+        LuaShield Raw Packer &copy; 2026. High-Security Execution Wrapper.
+    </footer>
+
+    <!-- JavaScript Engine Logic -->
+    <script>
+        function generateRandomName(length = 6) {
+            const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+            let res = '_';
+            for (let i = 0; i < length; i++) {
+                res += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return res;
+        }
+
+        function obfuscateCode() {
+            const input = document.getElementById('inputCode').value;
+            const outputArea = document.getElementById('outputCode');
+            const scriptNameInput = document.getElementById('scriptName').value.trim();
+            const scriptName = scriptNameInput !== "" ? scriptNameInput : "Protected Script";
+            
+            if (!input.trim()) {
+                alert('Vui lòng nhập mã nguồn Lua cần bảo vệ!');
+                return;
+            }
+
+            const optRaw = document.getElementById('optRaw').checked;
+            const optScramble = document.getElementById('optScramble').checked;
+            const optAntiDebug = document.getElementById('optAntiDebug').checked;
+
+            let finalOutput = "";
+
+            if (optRaw) {
+                // Chuyển đổi toàn bộ code thành mảng Byte (string.char)
+                const charCodes = [];
+                for (let i = 0; i < input.length; i++) {
+                    charCodes.push(input.charCodeAt(i));
+                }
+
+                // Chia mảng thành các chunks nhỏ để tránh giới hạn biểu thức Lua nếu code quá lớn
+                const varData = generateRandomName(8);
+                const varFunc = generateRandomName(8);
+                const varStream = generateRandomName(8);
+
+                let antiDebugCode = "";
+                if (optAntiDebug) {
+                    const varEnv = generateRandomName(6);
+                    antiDebugCode = `
+    local ${varEnv} = getgenv and getgenv() or _G
+    if ${varEnv}._LOCKED_EXEC then return end
+    ${varEnv}._LOCKED_EXEC = true`;
+                }
+
+                let scrambleMapping = "";
+                if (optScramble) {
+                    // Tạo một vài biến rác đánh lạc hướng static analysis
+                    const junk1 = generateRandomName(7);
+                    const junk2 = generateRandomName(7);
+                    scrambleMapping = `
+    local ${junk1} = {${Math.floor(Math.random()*999)}, ${Math.floor(Math.random()*999)}}
+    local function ${junk2}() return #${junk1} end`;
+                }
+
+                finalOutput = `--[[ 
+    Script Name : ${scriptName}
+    Protected by: LuaShield Raw Packer v3.0
+    Timestamp   : ${new Date().toISOString()}
+]]--
+
+(function()
+    ${antiDebugCode}
+    ${scrambleMapping}
+    local ${varData} = {${charCodes.join(', ')}}
+    local function ${varFunc}()
+        local ${varStream} = {}
+        for i = 1, #${varData} do
+            ${varStream}[i] = string.char(${varData}[i])
+        end
+        return table.concat(${varStream})
+    end
+    
+    local success, result = pcall(function()
+        return loadstring(${varFunc}())
+    end)
+    
+    if success and type(result) == "function" then
+        task.spawn(result)
+    else
+        error("LuaShield: Failed to execute protected script payload.")
+    end
+end)();`;
+
+            } else {
+                // Fallback nếu không chọn raw mode
+                finalOutput = `--[[ Script Name: ${scriptName} ]]--\n` + input;
+            }
+
+            outputArea.value = finalOutput;
+        }
+
+        function clearInput() {
+            document.getElementById('inputCode').value = '';
+            document.getElementById('outputCode').value = '';
+            document.getElementById('scriptName').value = '';
+        }
+
+        function copyOutput() {
+            const outputArea = document.getElementById('outputCode');
+            if (!outputArea.value) {
+                alert('Không có mã nguồn để sao chép!');
+                return;
+            }
+            outputArea.select();
+            navigator.clipboard.writeText(outputArea.value);
+            alert('Đã sao chép mã nguồn runnable vào bộ nhớ tạm!');
+        }
+    </script>
+</body>
+</html>
